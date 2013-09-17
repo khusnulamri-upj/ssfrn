@@ -123,6 +123,7 @@ class ReportConfig {
 function Cetak() {
     // *** Init PDF
     $pdf = new FPDF('P', 'mm', 'A4');
+    //$pdf = new FPDF('L', 'mm', 'A5');
     $pdf->SetTitle("Rekap Pembayaran Keuangan per Mahasiswa");
     $pdf->AddPage();
     $lbr = 290;
@@ -144,11 +145,12 @@ function BuatIsinya($p) {
     "SELECT bi.TagihanID, bi.TahunID, bi.Nama,
     IFNULL(byr.Jumlah, CASE WHEN bi.TrxID < 0 THEN (bi.TrxID*bi.Jumlah*bi.Besar) ELSE 0 END) AS jml_byr,
     DATE_FORMAT(hbyr.Tanggal,'%d-%m-%Y') AS tgl_byr, hbyr.Bank, byr.BayarMhswID,
-    k.StatusMhswID AS sts_mhs
+    sts.Nama AS sts_mhs
     FROM bipotmhsw bi
     LEFT OUTER JOIN bayarmhsw2 byr ON bi.BIPOTMhswID = byr.BIPOTMhswID
     LEFT OUTER JOIN bayarmhsw hbyr ON byr.BayarMhswID = hbyr.BayarMhswID
     LEFT OUTER JOIN khs k ON ((k.MhswID = bi.MhswID) AND (k.TahunID = bi.TahunID))
+    LEFT OUTER JOIN statusmhsw sts ON k.StatusMhswID = sts.StatusMhswID
     WHERE bi.MhswID = '$_SESSION[NPM]'
     AND bi.TahunID LIKE '$_SESSION[Tahun]%'
     AND bi.NA = 'N'
@@ -339,6 +341,7 @@ function BuatIsinya($p) {
             
             if ($before[jml_byr] < 0) {
                 $p->SetFont('Helvetica', 'I', $rpt::fsIsi);
+                $NamaBipot = '';
             } else {
                 $p->SetFont('Helvetica', '', $rpt::fsIsi);
             }
@@ -353,9 +356,12 @@ function BuatIsinya($p) {
             //$p->Cell($rpt::wJmlByr-2, $rpt::hIsi, $print_jml_byr, $bSmt, 0, 'R', true);
             //$p->Cell(2, $rpt::hIsi, '*', $bSmt, 0, 'R', true);
 
-            $printTotalJmlByr = (empty($printTotalJmlByr)) ? '-' : number_format($printTotalJmlByr, 0, '.', ',');
+            //$printTotalJmlByr = (empty($printTotalJmlByr)) ? '-' : number_format($printTotalJmlByr, 0, '.', ',');
+            $printTotalJmlByr = ($printTotalJmlByr == '') ? '-' : number_format($printTotalJmlByr, 0, '.', ',');
             $p->Cell($rpt::wTotalJmlByr, $rpt::hIsi, $printTotalJmlByr, $bSmt, 0, 'R', true);
-            $printHutang = (empty($printHutang)) ? '-' : number_format($printHutang, 0, '.', ',');
+            
+            //$printHutang = (empty($printHutang)) ? '-' : number_format($printHutang, 0, '.', ',');
+            $printHutang = (empty($printKet)) ? '-' : number_format($printHutang, 0, '.', ',');
             $p->Cell($rpt::wHutang, $rpt::hIsi, $printHutang, $bSmt, 0, 'R', true);
 
             $p->Cell($rpt::wTrn, $rpt::hIsi, $before[Bank], $bTrn, 0, 'L', true);
@@ -370,6 +376,7 @@ function BuatIsinya($p) {
         }
     }
     
+    $p->Ln();
     $p->Cell($lbr, $rpt::hIsi, "*) Potongan", 0);
     $p->Ln();
     
