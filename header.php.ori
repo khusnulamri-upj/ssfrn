@@ -1,0 +1,7 @@
+<div class='header0'>
+  <div class='header1'>
+  <?php if(!empty($arrID['Logo'])) echo "<div class='headerImg'><img src='$_URL$arrID[Logo]' height=95 hspace=10></div>";
+		//echo "<div class='headerTitle'>$arrID[Nama]</div>";
+ ?>
+  </div>
+</div>

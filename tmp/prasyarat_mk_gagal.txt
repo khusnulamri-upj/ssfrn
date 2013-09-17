@@ -1,0 +1,8 @@
+Daftar Mahasiswa Yang Tidak Memenuhi Syarat
+MK: TGF2152|Nama: SKRIPSI|SKS: 6
+11TEMPTGF001|Vina|Prasyarat  tidak terpenuhi. 
+2011201001|Tania|Prasyarat  tidak terpenuhi. 
+2011201007|Andi Lau|Prasyarat  tidak terpenuhi. 
+11TEMPTGF001|Vina|Prasyarat  tidak terpenuhi. 
+2011201001|Tania|Prasyarat  tidak terpenuhi. 
+2011201007|Andi Lau|Prasyarat  tidak terpenuhi. 

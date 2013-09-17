@@ -1,0 +1,65 @@
+<?php
+  require "class.ezpdf.php";
+  $doc =& new Cezpdf( );
+  $table = array(
+    array("Col A" => "Row 1, Col A data", "Col B" => "Row 1, Col B data"),
+    array("Col A" => "Row 2, Col A data", "Col B" => "Row 2, Col B data")
+  );
+  $columns = array("Col B" => "Column B", "Col A" => "Column A");
+  $options = array('cols' =>
+    array('Col A' => array('width'=>100, 'justification' => 'center'),
+          'Col B' => array('width'=>50, 'justification' => 'right')
+         )
+    );
+  $doc->ezTable($table, $columns, "The Table with Columns!", $options);
+  $doc->ezStream( );
+?>
+
+
+
+function prep_pdf($orientation = 'portrait')
+{
+$CI = &amp; get_instance();
+
+$CI->cezpdf->selectFont(base_url() . '/fonts');
+
+$all = $CI->cezpdf->openObject();
+$CI->cezpdf->saveState();
+$CI->cezpdf->setStrokeColor(0,0,0,1);
+if($orientation == 'portrait') {
+$CI->cezpdf->ezSetMargins(50,70,50,50);
+$CI->cezpdf->ezStartPageNumbers(500,28,8,'','{PAGENUM}',1);
+$CI->cezpdf->line(20,40,578,40);
+$CI->cezpdf->addText(50,32,8,'Printed on ' . date('m/d/Y h:i:s a'));
+$CI->cezpdf->addText(50,22,8,'CI PDF Tutorial - http://www.christophermonnat.com');
+}
+else {
+$CI->cezpdf->ezStartPageNumbers(750,28,8,'','{PAGENUM}',1);
+$CI->cezpdf->line(20,40,800,40);
+$CI->cezpdf->addText(50,32,8,'Printed on '.date('m/d/Y h:i:s a'));
+$CI->cezpdf->addText(50,22,8,'CI PDF Tutorial - http://www.christophermonnat.com');
+}
+$CI->cezpdf->restoreState();
+$CI->cezpdf->closeObject();
+$CI->cezpdf->addObject($all,'all');
+}
+
+
+
+function tables()
+{
+$this->load->library('cezpdf');
+
+$db_data[] = array('name' => 'Jon Doe', 'phone' => '111-222-3333', 'email' => 'jdoe@someplace.com');
+$db_data[] = array('name' => 'Jane Doe', 'phone' => '222-333-4444', 'email' => 'jane.doe@something.com');
+$db_data[] = array('name' => 'Jon Smith', 'phone' => '333-444-5555', 'email' => 'jsmith@someplacepsecial.com');
+
+$col_names = array(
+'name' => 'Name',
+'phone' => 'Phone Number',
+'email' => 'E-mail Address'
+);
+
+$this->cezpdf->ezTable($table_data, $col_names, 'Contact List', array('width'=>550));
+$this->cezpdf->ezStream();
+}

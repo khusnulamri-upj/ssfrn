@@ -1,0 +1,145 @@
+20081027
+========
+* Script
+  jur/mhswprasyarat.php
+  jur/mhswprasyarat.proses.php
+  jur/mhswprasyarat.xl.php
+  
+  dwo.lib.php
+  keu/lapkeu.mhswbayar.php
+  pmb/pmblap.php
+  pmb/pmblap.jualformulir.php
+
+20081025 - SENT
+========
+* SQL
+  pgri_mdl.sql
+
+* Script
+  baa/lapakd.php
+  baa/lapakd.krsmhsw.php
+  baa/lapakd.krsmhsw0.php
+  
+  jur/jadwal.php
+  
+
+
+20081021 - SENT
+===============
+* Script
+  /keu/bayarmhsw.bipotedit.php
+
+
+20081016, 17, 20 - SENT
+=======================
+* Menu
+  KaBAA > Laporan Akademik
+  INSERT INTO `mdl` VALUES (180, 'KaBAA', 'Laporan Akademik', 'baa/lapakd', 'N', '.1.50.', 'Y', 'N', 'Emanuel Setio Dewo', 'setio.dewo@gmail.com', '', '', 'N', '');
+  
+  Keuangan > Laporan Keuangan
+  INSERT INTO `mdl` VALUES (181, 'BAUK', 'Laporan Keuangan', 'keu/lapkeu', 'N', '.1.60.70.', 'Y', 'N', 'Emanuel Setio Dewo', 'setio.dewo@gmail.com', '', '', 'N', '');
+  
+  Dosen > 02 Penilaian
+  INSERT INTO `mdl` VALUES (182, 'Dosen', '02 Penilaian', 'jur/nilai', 'N', '.1.100.', 'Y', 'N', 'Emanuel Setio Dewo', 'setio.dewo@gmail.com', '', '', 'N', '');
+
+* Script
+  - dwo.lib.php
+  - baa/lapakd.php
+  - baa/lapakd.statusmhsw0.php
+  - baa/lapakd.statusmhsw.php
+  
+  - dosen/jadwal.php
+  
+  - jur/krs.ambil.php
+  - jur/jadwal.php
+  - jur/jadwal.pdf.php
+  - jur/mhswprasyarat.php
+  - jur/mhswprasyarat.proses.php
+  - jur/nilai.php
+  
+  - master/matakuliah.MK.php
+  - master/matakuliah.cetak.php
+  
+  - keu/biayamhsw.upload.php - SENT
+
+
+20081007 - SENT
+========
+
+* Menu
+  Utility > 01 Export Data ke DIKTI [util/dikti]
+
+
+20080919 - 23 - SENT
+========
+* Script
+  - baa/mhswbaru.php
+  - baa/tahun.php
+  - baa/wisuda.php
+  - baa/wisuda.cetak.php
+  - baa/wisuda.edit.php
+  - baa/wisuda.prasyarat.php
+  - baa/wisuda.album.php
+  - baa/wisuda.perkabupaten.php
+  - baa/wisuda.profile.php
+  - baa/wisuda.profile.script.js
+  
+  - jur/carimkprodi.php
+  - jur/krs.php
+  - jur/mhswprasyarat.php
+  - jur/mhswprasyarat.script.js
+  
+  - keu/bayarmhsw.php
+  
+  - master/gantifotomhsw.php
+  - master/mhsw.edt.pri.php
+  
+  - pmb/pmbform.isi.php
+
+* DB
+  - ALTER TABLE `wisuda` ADD `TahunID` VARCHAR( 50 ) NOT NULL AFTER `KodeID` ;
+  - ALTER TABLE `wisuda` ADD INDEX ( `TahunID` ) ;
+  - ALTER TABLE `wisuda` ADD `LoginBuat` VARCHAR( 50 ) NULL AFTER `NoProdi` ,
+    ADD `TglBuat` DATE NULL AFTER `LoginBuat` ,
+    ADD `LoginEdit` VARCHAR( 50 ) NULL AFTER `TglBuat` ,
+    ADD `TglEdit` DATE NULL AFTER `LoginEdit` ;
+  - CREATE TABLE `wisudaprasyarat` (
+    `PrasyaratID` VARCHAR( 50 ) NOT NULL ,
+    `KodeID` VARCHAR( 50 ) NOT NULL ,
+    `Nama` VARCHAR( 50 ) NOT NULL ,
+    `LoginBuat` VARCHAR( 50 ) NULL ,
+    `TglBuat` DATE NULL ,
+    `LoginEdit` VARCHAR( 50 ) NULL ,
+    `TglEdit` DATE NULL ,
+    `NA` ENUM( 'Y', 'N' ) NOT NULL DEFAULT 'N',
+    PRIMARY KEY ( `PrasyaratID` , `KodeID` )
+    ) ENGINE = MYISAM ;
+  
+  - ALTER TABLE `wisudawan` ADD `Prasyarat` TEXT NULL AFTER `Foto` ;
+  - ALTER TABLE `wisudawan` ADD `PrasyaratLengkap` ENUM( 'Y', 'N' ) NOT NULL DEFAULT 'N' AFTER `Foto` ;
+  - ALTER TABLE `wisudawan` DROP PRIMARY KEY;
+  - ALTER TABLE `wisudawan` ADD `WisudawanID` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST ;
+  - ALTER TABLE `wisudawan` ADD INDEX ( `MhswID` );
+  - ALTER TABLE `wisudawan` ADD `KodeID` VARCHAR( 50 ) NOT NULL DEFAULT 'SISFO' AFTER `WisudawanID` ;
+  - ALTER TABLE `wisudawan` ADD INDEX ( `KodeID` ) ;
+  - ALTER TABLE `wisudawan` ADD `WisudaID` BIGINT NOT NULL AFTER `WisudawanID` ;
+  - ALTER TABLE `wisudawan` ADD INDEX ( `WisudaID` ) ;
+  - ALTER TABLE `wisudawan` ADD `TahunID` VARCHAR( 50 ) NOT NULL AFTER `KodeID` ;
+  - ALTER TABLE `wisudawan` ADD INDEX ( `TahunID` ) ;
+    ALTER TABLE `wisudawan` ADD `Judul` TEXT NULL AFTER `MhswID` ,
+    ADD `Predikat` VARCHAR( 50 ) NULL AFTER `Judul` ;
+
+
+20080918 - SENT
+===============
+* Script
+  - jadwal.php
+  - jadwal.kursiuas.php
+  - jadwal.pindah.php
+  - krs.php
+  - krs.ambil.php
+  - krs.ambilpaket.php
+  - nilai.php
+  - nilai.exportxl.php
+  
+* DB

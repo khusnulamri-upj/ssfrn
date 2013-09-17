@@ -1,0 +1,192 @@
+<?php
+// Author : Emanuel Setio Dewo
+// Email  : setio.dewo@gmail.com
+// Start  : 08/10/2008
+
+session_start();
+include_once "../sisfokampus1.php";
+
+HeaderSisfoKampus("Aktivitas Mahasiswa");
+
+// *** Parameters ***
+$TahunID = GetSetVar('TahunID');
+$ProdiID = GetSetVar('ProdiID');
+$DariMhsw = GetSetVar('DariMhsw');
+$SampaiMhsw = GetSetVar('SampaiMhsw');
+
+// *** Main ***
+$gos = (empty($_REQUEST['gos']))? 'Satu' : $_REQUEST['gos'];
+$gos();
+
+// *** Functions ***
+function Satu() {
+  echo <<<ESD
+  <font size=+1>Aktivitas Mahasiswa</font> <sup>TRAKM</sup><br />
+  <table class=box cellspacing=1 width=100%>
+  <form action='../$_SESSION[mnux].mhsw.php' method=POST>
+  <tr>
+      <td width=200 valign=top>
+      Dari NIM:<br /> 
+      <input type=text name='DariMhsw' value='$_SESSION[DariMhsw]' size=20 maxlength=50 />
+      <font color=red>*)</font>
+      </td>
+      
+      <td width=200 valign=top>
+      Sampai NIM:<br />
+      <input type=text name='SampaiMhsw' value='$_SESSION[SampaiMhsw]' size=20 maxlength=50 />
+      </td>
+      
+      <td align=right valign=top>
+      <input type=submit name='gos' value='Proses' />
+      </td>
+      </tr>
+  </form>
+  </table>
+  <div align=right>
+  <font color=red>*) Kosongkan jika akan diproses semua</font>
+  </div>
+ESD;
+}
+function Proses() {
+  $_prodi = (empty($_SESSION['ProdiID']))? '' : "and j.ProdiID = '$_SESSION[ProdiID]' ";
+  // Buat DBF
+  include_once "../$_SESSION[mnux].header.dbf.php";
+  include_once "../func/dbf.function.php";
+  $NamaFile = "../tmp/TRAKM_$_SESSION[TahunID].DBF";
+  $_SESSION['amhsw_dbf'] = $NamaFile;
+  $_SESSION['amhsw_part'] = 0;
+  $_SESSION['amhsw_counter'] = 0;
+  $_SESSION['amhsw_total'] = HitungData();
+  if (file_exists($NamaFile)) unlink($NamaFile);
+  DBFCreate($NamaFile, $HeaderAktivitasMhsw);
+  echo <<<ESD
+  <font size=+1>Proses Aktivitas Mahasiswa...</font> (<b>$_SESSION[amhsw_total]</b> data)<br />
+  <table class=box cellspacing=1 width=100%>
+  <form name='frmMhsw' >
+  <tr>
+      <td valign=top width=10>
+      Counter:<br />
+      <input type=text name='Counter' value='0' size=3 maxlength=3 readonlye=true />
+      <td valign=top width=50>
+      NIM:<br />
+      <input type=text name='MhswID' value='' size=10 maxlength=50 readonly=true />
+      </td>
+      <td valign=top>
+      Nama Mahasiswa:<br />
+      <input type=text name='NamaMhsw' value='' size=30 maxlength=100 readonly=true />
+      </td>
+      </tr>
+  </form>
+  </table>
+  <br />
+  <script>
+  function Kembali() {
+    window.onLoad=setTimeout("window.location='../$_SESSION[mnux].mhsw.php?gos=Selesai'", 0);
+  }
+  function Prosesnya(cnt, nim, nama) {
+    frmMhsw.Counter.value = cnt;
+    frmMhsw.MhswID.value = nim;
+    frmMhsw.NamaMhsw.value = nama;
+  }
+  </script>
+  <iframe src="../$_SESSION[mnux].mhsw.php?gos=ProsesDetails" width=90% height=50 frameborder=0 scrolling=no>
+  </iframe>
+ESD;
+}
+function HitungData() {
+  $_prodi = (empty($_SESSION['ProdiID']))? '' : "and h.ProdiID = '$_SESSION[ProdiID]' ";
+  $jml = GetaField("khs h",
+    "h.NA='N' $_prodi and h.TahunID", $_SESSION['TahunID'], "count(h.KHSID)")+0;
+  return $jml;
+}
+function ProsesDetails() {
+  $max = $_SESSION['parsial'];
+  $tot = $_SESSION['amhsw_total'];
+  $n = $_SESSION['amhsw_part'];
+  $_dari = $n * $max;
+  $_sampai = (($n + 1) * $max) -1;
+  
+  // Ambil data
+  $_prodi = (empty($_SESSION['ProdiID']))? '' : "and h.ProdiID = '$_SESSION[ProdiID]' ";
+  $s = "select h.MhswID, h.TahunID, m.ProdiID, p.ProdiDiktiID,
+      p.JenjangID, h.IPS, h.SKS, h.TotalSKS, h.IP, m.TotalSKS as _TotalSKS,
+      LEFT(m.Nama, 50) as NamaMahasiswa
+    from khs h
+      left outer join mhsw m on h.MhswID = m.MhswID and m.KodeID = '".KodeID."'
+      left outer join prodi p on p.ProdiID = m.ProdiID and p.KodeID = '".KodeID."'
+    where h.NA = 'N'
+      and h.TahunID = '$_SESSION[TahunID]'
+      $_prodi
+    order by h.MhswID
+    limit $_dari, $_SESSION[parsial]";
+  //echo "<pre>$s</pre>";
+  $r = _query($s);
+  $jml = _num_rows($r);
+  
+  if ($jml > 0) {
+    $n = 0; $h = "height=20";
+    $_p = ($tot > 0)? $_SESSION['amhsw_counter']/$tot*100 : 0;
+    $__p = number_format($_p);
+    $_s = 100 - $_p;
+
+    echo "<img src='../img/B1.jpg' width=1 $h /><img src='../img/B2.jpg' width=$_p $h /><img src='../img/B3.jpg' width=$_s $h /><img src='../img/B1.jpg' width=1 $h /> <sup>&raquo; $__p%</sup>";
+    while ($w = _fetch_array($r)) {
+      $_SESSION['amhsw_counter']++;
+      $_counter = $_SESSION['amhsw_counter'];
+      echo "
+      <script>self.parent.Prosesnya($_counter, '$w[MhswID]', '$w[Nama]');</script>";
+      // Masukkan data
+      include_once "../$_SESSION[mnux].header.dbf.php";
+      include_once "../func/dbf.function.php";
+      $NamaFile = $_SESSION['amhsw_dbf'];
+      $dt = array(
+        $_SESSION['TahunID'],
+        $_SESSION['KodePTI'],
+        $w['ProdiDiktiID'],
+        $w['JenjangID'],
+        $w['MhswID'],
+        $w['NamaMahasiswa'],
+        $w['IPS'],
+        $w['SKS'],
+        $w['IP'],
+        $w['_TotalSKS']
+        );
+      InsertDataDBF($NamaFile, $dt);
+    }
+    $_SESSION['amhsw_part']++;
+    // Reload
+    echo <<<SCR
+    <script>
+    window.onLoad=setTimeout("window.location='../$_SESSION[mnux].mhsw.php?gos=ProsesDetails'", $_SESSION[Timer]);
+    </script>
+SCR;
+  }
+  else { // *** Selesai Proses
+    echo <<<SCR
+    <script>
+    self.parent.Kembali();
+    </script>
+SCR;
+  }
+}
+function Selesai() {
+  $NamaFile = $_SESSION['amhsw_dbf'];
+  echo <<<ESD
+  <font size=+1>Pemrosesan Aktivitas Mahasiswa Semester Telah Selesai</font><br />
+  <table class=box cellspacing=1 width=100%>
+  <tr><td>
+      Proses telah selesai. Anda dapat mendownload file hasil proses dengan menekan tombol download di bawah ini.<br />
+      Data yang berhasil diproses: <b>$_SESSION[amhsw_counter]</b>
+      <hr size=1 color=silver />
+      Opsi: <input type=button name='Download' value='Download File'
+        onClick="location='$NamaFile'" />
+        <input type=button name='Kembali' value='Kembali'
+        onClick="location='../$_SESSION[mnux].mhsw.php?gos='" />
+  </td></tr>
+  </table>
+ESD;
+}
+
+?>
+</BODY>
+</HTML>
