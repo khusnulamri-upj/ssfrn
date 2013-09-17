@@ -23,8 +23,6 @@ $gos();
 
 // *** Functions ***
 function PilihTahun() {
-    print_r($_SESSION);
-    
     $optTahun = "";
     $s = "SELECT MID(TahunID,1,4) AS Tahun FROM tahun GROUP BY MID(TahunID,1,4) ORDER BY Tahun";
     $q = _query($s);

@@ -27,7 +27,7 @@
   }
   
   //ADD AMR 06082013
-  print_r($_SESSION); 
+  //print_r($_SESSION); 
  ?>
  
 <HTML xmlns="http://www.w3.org/1999/xhtml">
