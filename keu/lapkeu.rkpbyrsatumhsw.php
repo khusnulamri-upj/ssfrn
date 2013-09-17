@@ -15,7 +15,7 @@ SCR;
 // *** Parameters ***
 $Tahun = GetSetVar('Tahun');
 $NPM = GetSetVar('NPM');
-$NamaMhsw = GetSetVar('NamaMhsw');
+//$NamaMhsw = GetSetVar('NamaMhsw');
 
 // *** Main ***
 $gos = (empty($_REQUEST['gos'])) ? 'PilihTahun' : $_REQUEST['gos'];
@@ -23,6 +23,8 @@ $gos();
 
 // *** Functions ***
 function PilihTahun() {
+    print_r($_SESSION);
+    
     $optTahun = "";
     $s = "SELECT MID(TahunID,1,4) AS Tahun FROM tahun GROUP BY MID(TahunID,1,4) ORDER BY Tahun";
     $q = _query($s);
@@ -99,17 +101,17 @@ ESD;
 }
 
 class ReportConfig {
-    const wThn = 8;
-    const wSesi = 10;
-    const wStsMhsw = 11;
-    const wNamaBipot = 40;
-    const wTglByr = 16;
-    const wJmlByr = 18;
-    const wTotalJmlByr = 18;
-    const wHutang = 18;
-    const wTrn = 26;
-    const wNoTrn = 18;
-    const wKet = 12;
+    const wThn = 7;
+    const wSesi = 9;
+    const wStsMhsw = 9;
+    const wNamaBipot = 60;
+    const wTglByr = 13;
+    const wJmlByr = 14;
+    const wTotalJmlByr = 14;
+    const wHutang = 14;
+    const wTrn = 15;
+    const wNoTrn = 14;
+    const wKet = 10;
     //const fontHeader = "Helvetica";
     const fsHeader = 6;
     const hHeader = 3;
@@ -141,10 +143,12 @@ function BuatIsinya($p) {
     $s =
     "SELECT bi.TagihanID, bi.TahunID, bi.Nama,
     IFNULL(byr.Jumlah, CASE WHEN bi.TrxID < 0 THEN (bi.TrxID*bi.Jumlah*bi.Besar) ELSE 0 END) AS jml_byr,
-    DATE_FORMAT(hbyr.Tanggal,'%d-%m-%Y') AS tgl_byr, hbyr.Bank, byr.BayarMhswID
+    DATE_FORMAT(hbyr.Tanggal,'%d-%m-%Y') AS tgl_byr, hbyr.Bank, byr.BayarMhswID,
+    k.StatusMhswID AS sts_mhs
     FROM bipotmhsw bi
     LEFT OUTER JOIN bayarmhsw2 byr ON bi.BIPOTMhswID = byr.BIPOTMhswID
     LEFT OUTER JOIN bayarmhsw hbyr ON byr.BayarMhswID = hbyr.BayarMhswID
+    LEFT OUTER JOIN khs k ON ((k.MhswID = bi.MhswID) AND (k.TahunID = bi.TahunID))
     WHERE bi.MhswID = '$_SESSION[NPM]'
     AND bi.TahunID LIKE '$_SESSION[Tahun]%'
     AND bi.NA = 'N'
@@ -217,10 +221,13 @@ function BuatIsinya($p) {
 
         if ((($NumSmt % 2) == 0) && ($NumSmt >= 0)) {
             $Smt = 'Genap';
+            $StsMhsw = $before[sts_mhs];
         } else if ((($NumSmt % 2) == 1) && ($NumSmt >= 0)) {
             $Smt = 'Ganjil';
+            $StsMhsw = $before[sts_mhs];
         } else {
             $Smt = '';
+            $StsMhsw = '';
         }
 
         //untuk print uraian pembayaran
@@ -250,7 +257,7 @@ function BuatIsinya($p) {
             $print_jml_byr = number_format($jml_byr, 0, '.', ',') . '*';
         } else {
             $jml_byr = 1 * $before[jml_byr];
-            $print_jml_byr = number_format($jml_byr, 0, '.', ',');
+            $print_jml_byr = number_format($jml_byr, 0, '.', ',') . '';
         }
 
         if ($after[TagihanID] == $before[TagihanID]) {
@@ -295,7 +302,7 @@ function BuatIsinya($p) {
             }
         }
 
-        $StsMhsw = 'Active';
+        //$StsMhsw = 'Active';
 
         //print border
         if (!empty($ThnAjar)) {
@@ -306,15 +313,21 @@ function BuatIsinya($p) {
 
         if (!empty($Smt)) {
             $bSmt = "LRT";
+            $bTrn = "LT";
+            $bNoTrn = "RT";
         } else {
             $bSmt = "LR";
+            $bTrn = "L";
+            $bNoTrn = "R";
         }
-
-         $barisKe = $barisKe + 1;
+        
+        $barisKe = $barisKe + 1;
 
         if (($totalBaris + 1) == $barisKe) {
             $bTahun = $bTahun . "B";
             $bSmt = $bSmt . "B";
+            $bTrn = $bTrn . "B";
+            $bNoTrn = $bNoTrn . "B";
         }
 
         if (!$isFirstRow) {
@@ -332,16 +345,21 @@ function BuatIsinya($p) {
             $p->Cell($rpt::wNamaBipot, $rpt::hIsi, $NamaBipot, $bSmt, 0, 'L', true);
             
             $p->SetFont('Helvetica', '', $rpt::fsIsi);
-            $p->Cell($rpt::wTglByr, $rpt::hIsi, $before[tgl_byr], $bSmt, 0, 'C', true);
+            
+            $printTglByr = (empty($before[tgl_byr])) ? '    -    -' : $before[tgl_byr];
+            $p->Cell($rpt::wTglByr, $rpt::hIsi, $printTglByr, $bSmt, 0, 'L', true);
+            
             $p->Cell($rpt::wJmlByr, $rpt::hIsi, $print_jml_byr, $bSmt, 0, 'R', true);
+            //$p->Cell($rpt::wJmlByr-2, $rpt::hIsi, $print_jml_byr, $bSmt, 0, 'R', true);
+            //$p->Cell(2, $rpt::hIsi, '*', $bSmt, 0, 'R', true);
 
             $printTotalJmlByr = (empty($printTotalJmlByr)) ? '-' : number_format($printTotalJmlByr, 0, '.', ',');
             $p->Cell($rpt::wTotalJmlByr, $rpt::hIsi, $printTotalJmlByr, $bSmt, 0, 'R', true);
             $printHutang = (empty($printHutang)) ? '-' : number_format($printHutang, 0, '.', ',');
             $p->Cell($rpt::wHutang, $rpt::hIsi, $printHutang, $bSmt, 0, 'R', true);
 
-            $p->Cell($rpt::wTrn, $rpt::hIsi, $before[Bank], $bSmt, 0, 'L', true);
-            $p->Cell($rpt::wNoTrn, $rpt::hIsi, $before[BayarMhswID], $bSmt, 0, 'L', true);
+            $p->Cell($rpt::wTrn, $rpt::hIsi, $before[Bank], $bTrn, 0, 'L', true);
+            $p->Cell($rpt::wNoTrn, $rpt::hIsi, $before[BayarMhswID], $bNoTrn, 0, 'C', true);
             $p->Cell($rpt::wKet, $rpt::hIsi, $printKet, $bSmt, 1, 'L', true);
         } else {
             $isFirstRow = false;
@@ -351,6 +369,32 @@ function BuatIsinya($p) {
             break;
         }
     }
+    
+    $p->Cell($lbr, $rpt::hIsi, "*) Potongan", 0);
+    $p->Ln();
+    
+    $spasi = ($rpt::wThn+$rpt::wSesi+$rpt::wStsMhsw+$rpt::wNamaBipot+$rpt::wTglByr+$rpt::wJmlByr+$rpt::wTotalJmlByr);
+    $p->Cell($spasi, $rpt::hIsi, "", 0);
+    $s =
+    "SELECT UCASE(a.Nama) AS Nama_User, b.Kota AS Kota,
+    DATE_FORMAT(NOW(),'%d-%m-%Y') AS Tgl_Buat FROM ".$_SESSION[_TabelUser]." a, identitas b
+    WHERE a.Login='".$_SESSION[_Login]."'
+    AND a.KodeID = '".$_SESSION[_KodeID]."' 
+    AND a.NA = 'N'
+    AND b.Kode = a.KodeID";
+
+    $q = _query($s);
+    
+    $w = _fetch_array($q);
+    
+    $p->Cell($lbr, $rpt::hIsi, $w[Kota].", ".$w[Tgl_Buat], 0);
+    $p->Ln();
+    $p->Cell($spasi, $rpt::hIsi, "", 0);
+    $p->Cell($lbr, $rpt::hIsi, "Petugas,", 0);
+    $p->Ln(9);
+    $p->Cell($spasi, $rpt::hIsi, "", 0);
+    $p->Cell($lbr, $rpt::hIsi, $w[Nama_User], 0);
+    
 }
 
 function BuatHeadernya($p) {
@@ -358,19 +402,26 @@ function BuatHeadernya($p) {
     
     $rpt = new ReportConfig();
 
-    $p->SetFont('Helvetica', 'B', 8);
-    $p->SetFillColor(255, 255, 255);
+    $p->SetFont('Helvetica', '', $rpt::fsHeader);
+    $p->SetFillColor(255, 255, 255); //background putih
     $p->Cell($lbr, $rpt::hHeader, "REKAP PEMBAYARAN KEUANGAN MAHASISWA", 0, 1, 'L', true);
-    $p->Cell(($rpt::wThn+$rpt::wSesi), $rpt::hHeader, "Nama Mahasiswa", 0);
+    $p->Cell(($rpt::wThn+$rpt::wSesi+$rpt::wStsMhsw-2), $rpt::hHeader, "Nama Mahasiswa", 0);
     $p->Cell(2, $rpt::hHeader, ":", 0);
-    $p->Cell(($rpt::wNamaBipot+$rpt::wTglByr+2), $rpt::hHeader, $_SESSION[NamaMhsw], 0);
+    
+    $s = "SELECT UCASE(Nama) AS Nama FROM mhsw WHERE MhswID = '$_SESSION[NPM]'";
+
+    $q = _query($s);
+    
+    $w = _fetch_array($q);
+    
+    $p->Cell(($rpt::wNamaBipot+$rpt::wTglByr+2), $rpt::hHeader, $w[Nama], 0);
     $p->Ln();
-    $p->Cell(($rpt::wThn+$rpt::wSesi), $rpt::hHeader, "N P M", 0);
+    $p->Cell(($rpt::wThn+$rpt::wSesi+$rpt::wStsMhsw-2), $rpt::hHeader, "N P M", 0);
     $p->Cell(2, $rpt::hHeader, ":", 0);
     $p->Cell(($rpt::wNamaBipot+$rpt::wTglByr+2), $rpt::hHeader, $_SESSION[NPM], 0);
-    $p->Ln(10);
+    $p->Ln(6);
 
-    $p->SetFont('Helvetica', 'B', 8);
+    $p->SetFont('Helvetica', '', $rpt::fsHeader);
     $p->Cell($rpt::wThn, $rpt::hHeader, 'T.A.', 1, 0, 'L', true);
     $p->Cell($rpt::wSesi, $rpt::hHeader, 'Smt.', 1, 0, 'L', true);
     $p->Cell($rpt::wStsMhsw, $rpt::hHeader, 'Status', 1, 0, 'L', true);
@@ -379,9 +430,9 @@ function BuatHeadernya($p) {
     $p->Cell($rpt::wJmlByr, $rpt::hHeader, 'Bayar', 1, 0, 'C', true);
     $p->Cell($rpt::wTotalJmlByr, $rpt::hHeader, 'Total', 1, 0, 'C', true);
     $p->Cell($rpt::wHutang, $rpt::hHeader, 'Tunggakan', 1, 0, 'C', true);
-    $p->Cell($rpt::wTrn, $rpt::hHeader, 'Bukti Bayar', 1, 0, 'L', true);
-    $p->Cell($rpt::wNoTrn, $rpt::hHeader, 'Kwitansi', 1, 0, 'L', true);
-    $p->Cell($rpt::wKet, $rpt::hHeader, 'Ket.', 1, 1, 'L', true);
+    $p->Cell($rpt::wTrn, $rpt::hHeader, 'Bukti Bayar', 'LTB', 0, 'L', true);
+    $p->Cell($rpt::wNoTrn, $rpt::hHeader, 'Kwitansi', 'RTB', 0, 'C', true);
+    $p->Cell($rpt::wKet, $rpt::hHeader, 'Ket.', 1, 1, 'C', true);
 }
 
 ?>

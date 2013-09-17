@@ -87,6 +87,7 @@ function cek() {
     $rr = _query($ss);
     $_dat = _fetch_array($rr);
     if (!empty($_dat)) {
+        $_tbl = $w['TabelUser']; //add khusnul 20130917
         break;
     }
   }
